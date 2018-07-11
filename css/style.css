@@ -1,0 +1,9 @@
+* { box-sizing: border-box; }
+
+html { height: 100%; }
+
+body { font-family: sans-serif; height: 100%; }
+
+#map { width: 100%; height: 50vh; background-color: grey; }
+
+.countries-container { display: -ms-flexbox; display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; max-width: 1200px; }
