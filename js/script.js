@@ -9,11 +9,13 @@ const url = 'https://restcountries.eu/rest/v2/name/';
 var countriesList = document.querySelector('.countries-container');
 var elem = document.getElementById('countries');
 var coordinates =[];
-var countries ="";
+//var countries ="";
 var map;
 var buttons;
 var theParent;
 var countriesMap = new Map();
+var countriesNames =[];
+let markersArray = [];
 
 document.getElementById('search').addEventListener('click', searchCountries);
 
@@ -28,35 +30,38 @@ function searchCountries() {
 }
 
 function showCountriesList(resp) {
-    //1.flaga
-    //console.log(resp[0].flag);
-    //nazwa oryg. nativeName
-    //stolica: capital
-    //waluta: currencies[] {code: "EUR", name: "Euro", symbol: "€"}
-    //języki: languages[] {iso639_1: "la", iso639_2: "lat", name: "Latin", nativeName: "latine"}
 
-    console.log(resp);
+    cleanUpMarkers();
+
     countriesList.innerHTML = '';
     resp.forEach(function(item){
         coordinates.push({name:item.name, latlng:{lat: item.latlng[0], lng: item.latlng[1]}});
     });
     resp.forEach(function (item) {
-            countriesMap.set(item.name, { latlng: item.latlng });
+            countriesMap.set(item.name, { latlng: {lat: item.latlng[0], lng: item.latlng[1]}, flag:item.flag, nativeName: item.nativeName, capital:item.capital, currencies:item.currencies, languages:item.languages });
+            countriesNames.push({name:item.name});
         });
-    console.log(countriesMap);
-    console.log(countriesMap.get('Serbia').latlng[0]);
+    //console.log(countriesMap);
+    //debugger;
+
+    for (let [k, v] of countriesMap) {
+        console.log(k, v);
+    }
+
+    //console.log(countriesMap.get('Serbia').latlng[0]);
     generateCountriesList();
     setUpMarkers();
 }
 
-var templateCountry = document.getElementById('template-country').innerHTML;
+var templateCountryButton = document.getElementById('template-country').innerHTML;
 
 function generateCountriesList() {
-    Mustache.parse(templateCountry);
-        for (var i = 0; i < coordinates.length; i++) {
-        countries+= Mustache.render(templateCountry, coordinates[i]);
-    }
-    countriesList.insertAdjacentHTML('afterbegin', countries);
+    var generateButtonTemplate ="";
+    Mustache.parse(templateCountryButton);
+        for (var i = 0; i < countriesNames.length; i++) {
+            generateButtonTemplate+= Mustache.render(templateCountryButton, countriesNames[i]);
+        }
+    countriesList.insertAdjacentHTML('afterbegin', generateButtonTemplate);
     buttonClick();
 }
 
@@ -95,7 +100,6 @@ function removeButtons() {
     }
     buttons = [];
     coordinates = [];
-    countries= "";
 }
 
 window.initMap = function() {
@@ -105,10 +109,25 @@ window.initMap = function() {
 }
 
 function setUpMarkers() {
-    //clean markers
-    var markers = coordinates.map(function(coord){
-        return new google.maps.Marker({position: coord.latlng, map: map});
-    });
+    for (let [k, v] of countriesMap) {
+        //console.log(k, v);
+        markersArray.push(new google.maps.Marker({position: v.latlng, map: map}));
+    }
 }
+
+function cleanUpMarkers(){
+    console.log("here");
+    //debugger;
+    for (var i = 0; i < markersArray.length; i++) {
+        markersArray[i].setMap(null);
+    }
+    //array is not cleaned :/
+    markersArray.length = 0;
+    console.log(markersArray);
+
+}
+
+
+
 
 
