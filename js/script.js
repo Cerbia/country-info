@@ -13,6 +13,7 @@ var countries ="";
 var map;
 var buttons;
 var theParent;
+var countriesMap = new Map();
 
 document.getElementById('search').addEventListener('click', searchCountries);
 
@@ -39,6 +40,11 @@ function showCountriesList(resp) {
     resp.forEach(function(item){
         coordinates.push({name:item.name, latlng:{lat: item.latlng[0], lng: item.latlng[1]}});
     });
+    resp.forEach(function (item) {
+            countriesMap.set(item.name, { latlng: item.latlng });
+        });
+    console.log(countriesMap);
+    console.log(countriesMap.get('Serbia').latlng[0]);
     generateCountriesList();
     setUpMarkers();
 }
@@ -104,3 +110,5 @@ function setUpMarkers() {
         return new google.maps.Marker({position: coord.latlng, map: map});
     });
 }
+
+
