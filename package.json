@@ -14,7 +14,7 @@
     "build:clean": "rimraf css/*",
     "build:sass": "node-sass --output-style compact -o css sass",
     "build:autoprefixer": "autoprefixer-cli css/style.css",
-    "build:babel": "babel --presets es2015 js/script.js -o build/main.bundle.js",
+    "build:babel": "babel js/script.js -o build/main.bundle.js",
     "build-dev:sass": "node-sass --output-style expanded --source-map true -o css sass",
     "watch": "npm-run-all build -p watch:*",
     "watch:sass": "node-sass --output-style expanded --source-map true -o css sass --watch",
@@ -36,8 +36,7 @@
   "devDependencies": {
     "autoprefixer-cli": "^1.0.0",
     "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-latest": "^6.24.1",
     "browser-sync": "^2.24.4",
     "globstar": "^1.0.0",
     "mkdirp": "^0.5.1",
