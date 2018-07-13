@@ -9,6 +9,7 @@ const url = 'https://restcountries.eu/rest/v2/name/';
 var countriesButtonContainer = document.querySelector('.countries-container');
 // mustache template
 var templateCountryButton = document.getElementById('template-country').innerHTML;
+var countryInput = document.getElementById('country-name');
 var map;
 var theParentCountryButtonEl;
 var countriesMap = new Map();
@@ -17,8 +18,15 @@ let markersArray = [];
 
 document.getElementById('search').addEventListener('click', searchCountries);
 
+countryInput.addEventListener('keyup', function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+        document.getElementById('search').click();
+    }
+});
+
 function searchCountries() {
-    var countryName = document.getElementById('country-name').value;
+    var countryName = countryInput.value;
     if(!countryName) countryName = 'Poland';
     
     fetch(prefix + url + countryName)
