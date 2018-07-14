@@ -1,95 +1,118 @@
-/*reorganize code & create 
+/*reorganize code & create
 https://hackernoon.com/observer-vs-pub-sub-pattern-50d3b27f838c
 https://gist.github.com/learncodeacademy/777349747d8382bfb722
 */
+//TODO: Classes Map and Countries
 
+class Marker {
+  constructor(engine) {
+    this.engine = engine
+    this.markersArray = []
+  }
 
-const prefix = "https://cryptic-headland-94862.herokuapp.com/";
-const url = 'https://restcountries.eu/rest/v2/name/';
-var countriesButtonContainer = document.querySelector('.countries-container');
-// mustache template
-var templateCountryButton = document.getElementById('template-country').innerHTML;
-var countryInput = document.getElementById('country-name');
-var map;
-var theParentCountryButtonEl;
-var countriesMap = new Map();
-var countriesNames =[];
-let markersArray = [];
-
-document.getElementById('search').addEventListener('click', searchCountries);
-
-countryInput.addEventListener('keyup', function(event) {
-    event.preventDefault();
-    if (event.keyCode === 13) {
-        document.getElementById('search').click();
+  setUpMarkers() {
+    for (let [k, v] of this.engine.countriesMap) {
+      this.markersArray.push(new google.maps.Marker({position: v.latlng, map: map}))
     }
-});
+  }
 
-function searchCountries() {
-    var countryName = countryInput.value;
-    if(!countryName) countryName = 'Poland';
-    
-    fetch(prefix + url + countryName)
-        .then(response => response.json())
-        .then(showCountriesList);
+  cleanUpMarkers() {
+    this.markersArray.forEach(function (item) {
+      item.setMap(null)
+    })
+    this.markersArray = []
+  }
 }
 
+class Application {
+  static prefix = 'https://cryptic-headland-94862.herokuapp.com/'
+
+  constructor() {
+    this.countriesButtonContainer = document.querySelector('.countries-container')
+    this.templateCountryButton = document.getElementById('template-country').innerHTML
+    this.countryInput = document.getElementById('country-name')
+    this.countriesMap = new Map()
+    this.marker = new Marker(this)
+  }
+
+  searchCountries() {
+    var countryName = this.countryInput.value
+    if (!countryName) countryName = 'Poland'
+
+    fetch(Application.prefix + url + countryName)
+      .then(response => response.json())
+      .then(showCountriesList)
+  }
+
+  clearResult() {
+    this.countriesNames = []
+    this.countriesMap.clear()
+    this.marker.cleanUpMarkers()
+  }
+
+}
+
+
+const url = 'https://restcountries.eu/rest/v2/name/'
+
+
+const engine = new Application()
+
+document.getElementById('search').addEventListener('click', engine.searchCountries.bind(engine))
+
+engine.countryInput.addEventListener('keyup', function (event) {
+  event.preventDefault()
+  if (event.keyCode === 13) {
+    document.getElementById('search').click()
+  }
+})
+
+
 function showCountriesList(resp) {
-    //czyszczenie
-    countriesNames = [];
-    countriesMap.clear();
-    cleanUpMarkers();
-    // Czyszczenie buttonów w html
-    countriesButtonContainer.innerHTML = '';
+  engine.clearResult();
 
-    resp.forEach(function (item) {
-            countriesMap.set(item.name, { latlng: {lat: Number(item.latlng[0]), lng: Number(item.latlng[1])}, flag:item.flag, nativeName: item.nativeName, capital:item.capital, currencies:item.currencies, languages:item.languages });
-            countriesNames.push({name:item.name});
-            //console.log(item.name + 'latlng: {lat: ' + item.latlng[0] + ', lng: ' + item.latlng[1] + '}');
-        });
+  // Czyszczenie buttonów w html
+  engine.countriesButtonContainer.innerHTML = ''
 
-    generateCountriesList();
-    setUpMarkers();
+  resp.forEach(function (item) {
+    engine.countriesMap.set(item.name, {
+      latlng: {lat: Number(item.latlng[0]), lng: Number(item.latlng[1])},
+      flag: item.flag,
+      nativeName: item.nativeName,
+      capital: item.capital,
+      currencies: item.currencies,
+      languages: item.languages,
+    })
+    engine.countriesNames.push({name: item.name})
+  })
+
+  generateCountriesList()
+  engine.marker.setUpMarkers()
 }
 
 function generateCountriesList() {
-    var generateButtonTemplate ="";
-    Mustache.parse(templateCountryButton);
-        for (var i = 0; i < countriesNames.length; i++) {
-            generateButtonTemplate+= Mustache.render(templateCountryButton, countriesNames[i]);
-        }
-    countriesButtonContainer.insertAdjacentHTML('afterbegin', generateButtonTemplate);
+  var generateButtonTemplate = ''
+  Mustache.parse(engine.templateCountryButton)
+  for (var i = 0; i < engine.countriesNames.length; i++) {
+    generateButtonTemplate += Mustache.render(engine.templateCountryButton, engine.countriesNames[i])
+  }
+  engine.countriesButtonContainer.insertAdjacentHTML('afterbegin', generateButtonTemplate)
 }
 
-theParentCountryButtonEl = document.querySelector('.countries-container');
+const theParentCountryButtonEl = document.querySelector('.countries-container')
 
-theParentCountryButtonEl.addEventListener('click', centerCountryOnTheMap, false);
+theParentCountryButtonEl.addEventListener('click', centerCountryOnTheMap, false)
 
-function centerCountryOnTheMap(e){
-    if (e.target !== e.currentTarget) {
-        map.setCenter(countriesMap.get(e.target.innerHTML).latlng);
-        map.setZoom(5);
-    }
-    e.stopPropagation();
+function centerCountryOnTheMap(e) {
+  if (e.target !== e.currentTarget) {
+    map.setCenter(engine.countriesMap.get(e.target.innerHTML).latlng)
+    map.setZoom(5)
+  }
+  e.stopPropagation()
 }
 
-window.initMap = function() {
-    map = new google.maps.Map(
-        document.getElementById('map'), {zoom: 5, center: {lat: 52, lng: 20}}
-    );
-}
-
-function setUpMarkers() {
-    for (let [k, v] of countriesMap) {
-        //console.log(k, v);
-        markersArray.push(new google.maps.Marker({position: v.latlng, map: map}));
-    }
-}
-
-function cleanUpMarkers(){
-    markersArray.forEach(function(item){
-        item.setMap(null);
-    });
-    markersArray = [];
-    //console.log(markersArray);
+window.initMap = function () {
+  map = new google.maps.Map(
+    document.getElementById('map'), {zoom: 5, center: {lat: 52, lng: 20}},
+  )
 }
